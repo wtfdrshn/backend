@@ -43,52 +43,58 @@ const registerOrganizer = asyncHandler(async (req, res) => {
 // @route   POST /api/organizers/send-otp
 // @access  Public
 const sendLoginOTP = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-
-  console.log('Received OTP request for:', email);
-
-  const organizer = await Organizer.findOne({ email });
-  if (!organizer) {
-    res.status(404);
-    throw new Error('Organizer not found');
-  }
-
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-  console.log('Generated OTP:', otp); // Debug log
-
-  // Save OTP to organizer document
-  organizer.otp = {
-    code: otp,
-    expiresAt: otpExpiry
-  };
-  
   try {
-    await organizer.save();
-    console.log('OTP saved to database'); // Debug log
-  } catch (error) {
-    console.error('Error saving OTP:', error);
-    res.status(500);
-    throw new Error('Failed to save OTP');
-  }
+    const { email } = req.body;
 
-  // Send OTP email
-  try {
-    const emailSent = await sendOTP(email, otp);
-    console.log('Email sending result:', emailSent); // Debug log
-    
-    if (!emailSent) {
-      res.status(500);
-      throw new Error('Failed to send OTP email');
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
     }
-  } catch (error) {
-    console.error('Email error:', error);
-    res.status(500);
-    throw new Error('Failed to send OTP email');
-  }
 
-  res.json({ message: 'OTP sent successfully' });
+    console.log('Received OTP request for:', email);
+
+    const organizer = await Organizer.findOne({ email });
+    if (!organizer) {
+      return res.status(404).json({ message: 'Organizer not found' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    console.log('Generated OTP:', otp); // Debug log
+
+    // Save OTP to organizer document
+    organizer.otp = {
+      code: otp,
+      expiresAt: otpExpiry
+    };
+    
+    await organizer.save();
+    console.log('OTP saved to database');
+
+    // Send OTP email
+    try {
+      const emailSent = await sendOTP(email, otp);
+      console.log('Email sending result:', emailSent);
+      
+      if (!emailSent) {
+        return res.status(500).json({ message: 'Failed to send OTP email' });
+      }
+    } catch (emailError) {
+      console.error('Email error:', emailError);
+      return res.status(500).json({ 
+        message: 'Failed to send OTP email',
+        error: emailError.message 
+      });
+    }
+
+    res.status(200).json({ message: 'OTP sent successfully' });
+  } catch (error) {
+    console.error('SendLoginOTP error:', error);
+    res.status(500).json({ 
+      message: 'Server error while processing OTP',
+      error: error.message 
+    });
+  }
 });
 
 const loginOrganizer = asyncHandler(async (req, res) => {
@@ -173,8 +179,38 @@ const getOrganizerProfile = asyncHandler(async (req, res) => {
   }
 });
 
+// Add new controller function
+const verifyCredentials = asyncHandler(async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please provide email and password' });
+    }
+
+    const organizer = await Organizer.findOne({ email });
+    if (!organizer) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const isPasswordValid = await organizer.matchPassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    res.status(200).json({ message: 'Credentials verified' });
+  } catch (error) {
+    console.error('Verify credentials error:', error);
+    res.status(500).json({ 
+      message: 'Server error while verifying credentials',
+      error: error.message 
+    });
+  }
+});
+
 module.exports = {
   registerOrganizer,
+  verifyCredentials,
   sendLoginOTP,
   loginOrganizer,
   getOrganizerProfile,
