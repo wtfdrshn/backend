@@ -1,7 +1,8 @@
-const jwt = require('jsonwebtoken');
-const asyncHandler = require('express-async-handler');
-const User = require('../models/userModel');
-const Organizer = require('../models/organizerModel');
+import jwt from 'jsonwebtoken';
+import asyncHandler from 'express-async-handler';
+import User from '../models/userModel.js';
+import Organizer from '../models/organizerModel.js';
+
 
 const protect = asyncHandler(async (req, res, next) => {
   let token;
@@ -13,7 +14,7 @@ const protect = asyncHandler(async (req, res, next) => {
       
       // Check both User and Organizer collections
       req.user = await User.findById(decoded.id).select('-password') ||
-                 await Organizer.findById(decoded.id).select('-password');
+      await Organizer.findById(decoded.id).select('-password');
 
       next();
     } catch (error) {
@@ -28,4 +29,4 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { protect }; 
+export default protect;

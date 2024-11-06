@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const organizerSchema = mongoose.Schema({
   name: {
@@ -10,6 +10,36 @@ const organizerSchema = mongoose.Schema({
     type: String,
     required: [true, 'Please add an email'],
     unique: true
+  },
+  phone: {
+    type: String,
+    required: [true, 'Please add a phone number']
+  },
+  organization: {
+    type: String,
+    required: [true, 'Please add an organization']
+  },
+  address: {
+    street: {
+      type: String,
+      required: [true, 'Please add a street']
+    },
+    city: {
+      type: String,
+      required: [true, 'Please add a city']
+    },
+    state: {
+      type: String,
+      required: [true, 'Please add a state']
+    },
+    zipCode: {
+      type: String,
+      required: [true, 'Please add a zip code']
+    },
+    country: {
+      type: String,
+      required: [true, 'Please add a country']
+    }
   },
   password: {
     type: String,
@@ -36,5 +66,5 @@ organizerSchema.pre('save', async function(next) {
 organizerSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
-
-module.exports = mongoose.model('Organizer', organizerSchema); 
+      
+export default mongoose.model('Organizer', organizerSchema); 

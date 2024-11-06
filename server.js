@@ -1,7 +1,18 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { v2 as cloudinary } from 'cloudinary';
+import connectDB from './config/db.js';
+import userRoutes from './routes/userRoutes.js';
+import organizerRoutes from './routes/organizerRoutes.js';
+import blogRoutes from './routes/blogRoutes.js';
+import eventRoutes from './routes/eventRoutes.js';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 dotenv.config();
 connectDB();
@@ -18,8 +29,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/organizers', require('./routes/organizerRoutes'));
+app.use('/api/users', userRoutes);
+app.use('/api/organizers', organizerRoutes);
+app.use('/api/blogs', blogRoutes);
+app.use('/api/events', eventRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -30,7 +43,10 @@ app.use((err, req, res, next) => {
   });
 });
 
+
+
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 }); 

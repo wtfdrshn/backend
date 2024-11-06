@@ -1,7 +1,7 @@
-const asyncHandler = require('express-async-handler');
-const Organizer = require('../models/organizerModel.js');
-const { generateToken } = require('../utils/jwtUtils.js');
-const { sendOTP } = require('../utils/emailUtils.js');
+import asyncHandler from 'express-async-handler';
+import Organizer from '../models/organizerModel.js';
+import generateToken from '../utils/jwtUtils.js';
+import sendOTP from '../utils/emailUtils.js';
 
 // Generate OTP
 const generateOTP = () => {
@@ -208,7 +208,7 @@ const verifyCredentials = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = {
+export default {
   registerOrganizer,
   verifyCredentials,
   sendLoginOTP,
